@@ -1,0 +1,54 @@
+[
+  {
+    "query": "Create a clean architecture action for an Android feature that loads tasks and returns Result errors.",
+    "should_trigger": true
+  },
+  {
+    "query": "Should this Android feature have a repository if it only validates a local string?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a SubmitOrder use case that coordinates validation, payment, and persistence actions without throwing exceptions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this ViewModel calling a repository directly and catching exceptions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Rename TaskRepositoryImpl and RemoteTaskDataSource to follow our Android clean architecture repository naming convention, using Default only as fallback.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add suspend operator fun invoke to this Kotlin use case and return com.github.kittinunf.result.Result.",
+    "should_trigger": true
+  },
+  {
+    "query": "Migrate domain errors above the repository layer away from thrown exceptions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a Compose button with loading and disabled states.",
+    "should_trigger": false
+  },
+  {
+    "query": "Upgrade the Android Gradle Plugin to version 9.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain what Kotlin sealed classes are.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix a layout overlap in a dashboard screen.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a GitHub Actions workflow for Android unit tests.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add README tabs for npm pnpm and bun install commands.",
+    "should_trigger": false
+  }
+]

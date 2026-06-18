@@ -1,0 +1,44 @@
+{
+  "skill_name": "android-clean-architecture",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implement a LoadTask feature in an Android project. The feature loads from a remote API and must expose errors to the ViewModel without throwing.",
+      "expected_output": "A TDD-oriented implementation plan or code sketch with LoadTaskAction, suspend operator fun invoke, a suspend TaskRepository contract with ApiTaskRepository or ApiTaskDataSource for the remote API, Result-based success/failure, typed Throwable errors, and ViewModel handling without thrown exceptions.",
+      "assertions": [
+        "The output uses Action naming for the app/data loading operation.",
+        "The action defines suspend operator fun invoke.",
+        "A repository is introduced because a remote API/data boundary exists.",
+        "The output uses technology-prefixed infrastructure names such as ApiTaskRepository or ApiTaskDataSource instead of TaskRepositoryImpl, or DefaultTaskRepository only when no technology prefix is meaningful.",
+        "The action and repository are suspend and return com.github.kittinunf.result.Result or a clear project alias.",
+        "Expected failures are modeled as typed Throwable errors instead of thrown above the repository.",
+        "The output starts with or explicitly includes failing tests before implementation."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review a proposed ValidateTaskTitleRepository plus ValidateTaskTitleUseCase. The repository only checks whether a string is blank and has no data source.",
+      "expected_output": "A review that keeps the behavior behind an action or use case, removes or rejects the unnecessary repository, explains that repositories are optional when they add no boundary, and keeps Result-based validation errors. If a data source is mentioned, it should follow technology-prefixed naming.",
+      "assertions": [
+        "The output says the repository is unnecessary for simple local validation.",
+        "The output intentionally chooses ValidateTaskTitleAction for simple app validation or ValidateTaskTitleUseCase only if it is framed as business/domain validation.",
+        "The output keeps suspend operator fun invoke.",
+        "The output returns Result for validation success/failure.",
+        "The output does not introduce vague Impl names such as ValidateTaskTitleRepositoryImpl.",
+        "The output recommends tests for blank and non-blank titles."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Add a SubmitOrder operation that validates the order, submits payment, persists the order, catches expected failures, and returns them to the UI.",
+      "expected_output": "A plan or code sketch that creates SubmitOrderUseCase as a business workflow, optionally coordinates actions, uses suspend operator fun invoke, Result-based errors, no throwing above repositories, and tests first.",
+      "assertions": [
+        "The output uses UseCase naming for the business workflow.",
+        "The output may compose actions but does not create a duplicate SubmitOrderAction for the same responsibility.",
+        "The use case defines suspend operator fun invoke.",
+        "Expected order/payment/persistence errors are returned as Result failures.",
+        "The output includes TDD steps or tests before implementation."
+      ]
+    }
+  ]
+}
