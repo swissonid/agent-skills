@@ -6,6 +6,11 @@
       "title": "Mobile",
       "description": "Skills for Android app architecture, Kotlin, Jetpack Compose, and mobile screen conventions.",
       "skills": ["android-mvi"]
+    },
+    {
+      "title": "Skill Authoring",
+      "description": "Skills for creating, testing, validating, and publishing Agent Skills.",
+      "skills": ["skill-write"]
     }
   ]
 }
