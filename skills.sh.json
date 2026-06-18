@@ -5,7 +5,7 @@
     {
       "title": "Mobile",
       "description": "Skills for Android app architecture, Kotlin, Jetpack Compose, and mobile screen conventions.",
-      "skills": ["android-mvi"]
+      "skills": ["android-mvi", "android-clean-architecture"]
     }
   ]
 }

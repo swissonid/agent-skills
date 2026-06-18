@@ -1,0 +1,4 @@
+interface:
+  display_name: "Android Clean Architecture"
+  short_description: "Apply Android clean architecture rules"
+  default_prompt: "Use $android-clean-architecture to implement this Android feature with clean architecture and Result-based errors."
