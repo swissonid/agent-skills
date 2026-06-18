@@ -1,0 +1,66 @@
+[
+  {
+    "query": "Migrate this Compose screen to MVI: it has mutable loading/error/nav flags in the ViewModel and public onBack/onRetry methods.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you review whether this Android ViewModel follows our UserIntent UiState SideEffect conventions?",
+    "should_trigger": true
+  },
+  {
+    "query": "Create KDoc for our MVIViewModel, UiState, UserIntent, and SideEffect base interfaces.",
+    "should_trigger": true
+  },
+  {
+    "query": "This Profile screen stores snackbar text in UiState and clears it from the Composable. Is that okay?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add swipe left and swipe right intents to a Kotlin screen and emit one-shot navigation effects.",
+    "should_trigger": true
+  },
+  {
+    "query": "The app has a sealed interface SettingsUiState with an else branch in the UI renderer. Please make the handling exhaustive.",
+    "should_trigger": true
+  },
+  {
+    "query": "hey can you mvi-ify this android task detail vm? it has load(), save(), back(), and mutable state vars",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a clean naming pass over LoginUserIntent and LoginSideEffect for a Compose screen.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you write a Kotlin data class for a REST API response?",
+    "should_trigger": false
+  },
+  {
+    "query": "Upgrade this Android project to AGP 9 and fix the Gradle build errors.",
+    "should_trigger": false
+  },
+  {
+    "query": "Design a Compose Material theme with light and dark colors.",
+    "should_trigger": false
+  },
+  {
+    "query": "Help me debug why my Flow collector never receives values from the repository.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write unit tests for a plain Kotlin date parser.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a navigation graph with two tabs and deep links.",
+    "should_trigger": false
+  },
+  {
+    "query": "Convert this Java class to Kotlin and keep the same public API.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain what Model View Intent means conceptually without changing any code.",
+    "should_trigger": false
+  }
+]

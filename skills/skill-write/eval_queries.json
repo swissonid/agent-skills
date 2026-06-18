@@ -1,0 +1,50 @@
+[
+  {
+    "query": "Create a new Agent Skill for writing release notes and publish it in my skills.sh repo.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this SKILL.md frontmatter and tell me why the skill does not trigger reliably.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add evals/evals.json and trigger eval queries for this skill before I publish it.",
+    "should_trigger": true
+  },
+  {
+    "query": "Refactor this skill so SKILL.md is concise and detailed API docs live in references.",
+    "should_trigger": true
+  },
+  {
+    "query": "Prepare my skill repository for skills.sh with grouping metadata and install commands.",
+    "should_trigger": true
+  },
+  {
+    "query": "Is this skill description too workflow-heavy? Rewrite it for discovery.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a Kotlin data class for this JSON response.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix a failing Android unit test in this ViewModel.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a README section with npm, pnpm, and bun install commands.",
+    "should_trigger": false
+  },
+  {
+    "query": "Explain how sealed interfaces work in Kotlin.",
+    "should_trigger": false
+  },
+  {
+    "query": "Debug why npx cannot resolve a package on my machine.",
+    "should_trigger": false
+  },
+  {
+    "query": "Design a Compose settings screen with Material 3.",
+    "should_trigger": false
+  }
+]

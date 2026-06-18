@@ -1,0 +1,41 @@
+{
+  "skill_name": "android-mvi",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Migrate an Android Compose TaskDetail screen to our MVI conventions. It currently exposes isLoading, title, errorMessage, and navigateBack as mutable fields on the ViewModel, plus public methods load(), onBack(), and updateTitle(String).",
+      "expected_output": "A migration plan or code sketch that introduces TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect, and an MVIViewModel subclass; routes UI events through onUserIntent; keeps navigation out of UiState; and uses exhaustive when branches.",
+      "assertions": [
+        "The output defines or requests a sealed interface TaskDetailUserIntent with past-tense events.",
+        "The output models loading, content, and error as TaskDetailUiState variants instead of nullable fields on one state.",
+        "The output uses TaskDetailSideEffect for one-shot navigation or snackbar behavior.",
+        "The output routes screen events through onUserIntent rather than adding extra public ViewModel action methods.",
+        "The output mentions exhaustive when handling for UserIntent and UI state rendering."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review this ViewModel shape for MVI: it has a data class ProfileUiState(val isLoading: Boolean, val user: User?, val snackbarMessage: String?, val navigateToLogin: Boolean), and the Composable clears snackbarMessage after showing it. What should change?",
+      "expected_output": "A review that separates persistent render state from one-shot effects, recommends sealed ProfileUiState variants, moves snackbar and navigation into ProfileSideEffect, and avoids storing one-time outputs in UiState.",
+      "assertions": [
+        "The output identifies snackbarMessage and navigateToLogin as one-shot effects that should not live in UiState.",
+        "The output recommends a feature-specific ProfileSideEffect sealed interface or equivalent effect stream.",
+        "The output recommends explicit ProfileUiState variants instead of a single optional-field state.",
+        "The output keeps User or other domain models mapped before exposure if needed.",
+        "The output gives actionable changes rather than only restating generic MVI principles."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Update the shared SideEffect and MVIViewModel documentation for our Android app so future screens know how to emit navigation, snackbars, analytics, and swipe-driven previous/next navigation.",
+      "expected_output": "KDoc-ready guidance for SideEffect and MVIViewModel that describes separate SharedFlow-style effect streams, shows TaskDetail-style side effects such as NavigatedBack/NavigatedToPreviousTask/NavigatedToNextTask, and preserves the base MVI contract boundaries.",
+      "assertions": [
+        "The output treats SideEffect as one-shot output separate from UiState.",
+        "The output uses a separate effect stream such as SharedFlow for effects.",
+        "The output includes navigation, snackbar, analytics, and swipe-driven previous/next navigation examples.",
+        "The output keeps MVIViewModel focused on state and onUserIntent rather than baking SideEffect into the base generic type.",
+        "The output uses TaskDetail-style generic examples rather than project-specific Workstep naming."
+      ]
+    }
+  ]
+}

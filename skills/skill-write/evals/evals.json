@@ -1,0 +1,42 @@
+{
+  "skill_name": "skill-write",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a new skill for reviewing Android ViewModels for MVI conventions and prepare it for a skills.sh repository.",
+      "expected_output": "A skill creation plan or artifact set that uses hyphen-case naming, trigger-focused frontmatter, concise SKILL.md content, references for detailed rules, eval files, UI metadata where useful, and publishing metadata.",
+      "assertions": [
+        "The output chooses a lowercase hyphen-case skill name.",
+        "The output writes or requests SKILL.md frontmatter with only name and description.",
+        "The description starts with Use when and focuses on trigger conditions rather than workflow.",
+        "The output uses references for long conventions instead of bloating SKILL.md.",
+        "The output includes both evals/evals.json and eval_queries.json or explicitly asks to create them.",
+        "The output mentions validating JSON and skill structure before publishing."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A skill author wants to skip evals because the skill is 'just documentation' and the README already explains everything. Review the plan.",
+      "expected_output": "A review that rejects skipping evals, explains that skills are process documentation that should be tested, and recommends concrete output-quality and trigger evals.",
+      "assertions": [
+        "The output identifies skipping evals as a quality risk.",
+        "The output recommends output-quality evals with expected outputs or assertions.",
+        "The output recommends trigger evals with positive and negative queries.",
+        "The output keeps README-style docs separate from the skill's required SKILL.md and references.",
+        "The output avoids performative agreement and gives concrete next steps."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Fix this skill description: 'Creates skills by planning resources, initializing folders, writing markdown, adding tests, and publishing metadata.'",
+      "expected_output": "A trigger-focused replacement description that starts with Use when and describes situations requiring the skill, not the workflow.",
+      "assertions": [
+        "The replacement starts with Use when.",
+        "The replacement describes triggering situations such as creating, editing, validating, evaluating, or publishing skills.",
+        "The replacement does not summarize the step-by-step workflow.",
+        "The replacement includes useful discovery keywords such as Agent Skills, SKILL.md, evals, frontmatter, or skills.sh.",
+        "The replacement is concise and under 1024 characters."
+      ]
+    }
+  ]
+}

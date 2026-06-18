@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Write"
+  short_description: "Write and verify agent skills"
+  default_prompt: "Use $skill-write to create a tested Agent Skill from this idea."
