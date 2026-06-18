@@ -24,16 +24,15 @@ This guideline defines the project-wide MVI vocabulary before gradually migratin
 Conventions:
 
 - Feature type: `<ScreenSubject>UserIntent`
-- Intent events: past tense, with a visible screen/subject prefix
-- Example: `TaskDetailStarted`, `TaskDetailBackPressed`, `TaskDetailSwipedLeft`
+- Intent events: past tense, scoped by the sealed interface; do not repeat the screen subject inside each variant
+- Example variants inside `TaskDetailUserIntent`: `TaskStarted`, `TaskCompleted`, `TaskStopped`
 
 ```kotlin
 sealed interface TaskDetailUserIntent : UserIntent {
-    data object TaskDetailStarted : TaskDetailUserIntent
-    data object TaskDetailBackPressed : TaskDetailUserIntent
-    data object TaskDetailSwipedLeft : TaskDetailUserIntent
-    data object TaskDetailSwipedRight : TaskDetailUserIntent
-    data class TaskDetailTitleChanged(
+    data object TaskStarted : TaskDetailUserIntent
+    data object TaskCompleted : TaskDetailUserIntent
+    data object TaskStopped : TaskDetailUserIntent
+    data class TitleChanged(
         val value: String,
     ) : TaskDetailUserIntent
 }
@@ -96,9 +95,8 @@ Use cases:
 
 ```kotlin
 sealed interface TaskDetailSideEffect : SideEffect {
-    data object NavigatedBack : TaskDetailSideEffect
-    data object NavigatedToPreviousTask : TaskDetailSideEffect
-    data object NavigatedToNextTask : TaskDetailSideEffect
+    data object CompletionCelebrated : TaskDetailSideEffect
+    data object StopConfirmed : TaskDetailSideEffect
     data class SnackbarShown(val message: String) : TaskDetailSideEffect
     data class AnalyticsTracked(val eventName: String) : TaskDetailSideEffect
 }
@@ -106,30 +104,33 @@ sealed interface TaskDetailSideEffect : SideEffect {
 
 Emission recommendation:
 
-- Use a separate stream in the ViewModel, for example `SharedFlow<TaskDetailSideEffect>`.
+- Use the base `MVIViewModel` `sideEffects` stream and emit through `emitSideEffect(...)`.
 
 ## 4) Interaction In The ViewModel
 
 ```kotlin
 class TaskDetailViewModel :
-    MVIViewModel<TaskDetailUserIntent, TaskDetailUiState>(
+    MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
         initialState = TaskDetailUiState.TaskDetailLoading,
     ) {
     override fun onUserIntent(intent: TaskDetailUserIntent) {
         when (intent) {
-            TaskDetailUserIntent.TaskDetailStarted -> {
+            TaskStarted -> {
                 // load data
             }
-            TaskDetailUserIntent.TaskDetailBackPressed -> {
-                // reduce state or emit side effect
+            TaskCompleted -> {
+                // reduce state and emit completion side effect
+                viewModelScope.launch {
+                    emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
+                }
             }
-            TaskDetailUserIntent.TaskDetailSwipedLeft -> {
-                // emit previous-task side effect
+            TaskStopped -> {
+                // reduce state and emit stop side effect
+                viewModelScope.launch {
+                    emitSideEffect(TaskDetailSideEffect.StopConfirmed)
+                }
             }
-            TaskDetailUserIntent.TaskDetailSwipedRight -> {
-                // emit next-task side effect
-            }
-            is TaskDetailUserIntent.TaskDetailTitleChanged -> {
+            is TitleChanged -> {
                 // reduce state
             }
         }
@@ -144,4 +145,5 @@ class TaskDetailViewModel :
 - `sealed interface <ScreenSubject>UiState` exists.
 - Each state contains only required properties.
 - `sealed interface <ScreenSubject>SideEffect` exists for one-shot effects.
+- ViewModel extends `MVIViewModel<Intent, State, SideEffect>` and emits effects with `emitSideEffect(...)`; screens without effects use `SideEffect.None` as the third type argument.
 - Exhaustive `when` handling exists in `onUserIntent` and in the UI.

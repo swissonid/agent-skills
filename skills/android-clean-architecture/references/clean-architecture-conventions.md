@@ -213,8 +213,8 @@ Prefer typed error classes:
 
 ```kotlin
 sealed class LoadTaskError(message: String? = null) : Throwable(message) {
-    data object NotFound : LoadTaskError()
-    data object Offline : LoadTaskError()
+    data class NotFound : LoadTaskError()
+    data class Offline : LoadTaskError()
     data class Unknown(val cause: Throwable) : LoadTaskError(cause.message)
 }
 ```

@@ -31,29 +31,23 @@ Feature-specific shape:
 
 ```kotlin
 sealed interface TaskDetailUserIntent : UserIntent {
-    data object TaskDetailStarted : TaskDetailUserIntent
-    data object TaskDetailBackPressed : TaskDetailUserIntent
-    data object TaskDetailSwipedLeft : TaskDetailUserIntent
-    data object TaskDetailSwipedRight : TaskDetailUserIntent
-    data class TaskDetailTitleChanged(val value: String) : TaskDetailUserIntent
-}
-
-sealed interface ConnectionBannerUserIntent : UserIntent {
-    data object ConnectionBannerRetryTapped : ConnectionBannerUserIntent
-    data object ConnectionBannerDismissed : ConnectionBannerUserIntent
+    data object TaskStarted : TaskDetailUserIntent
+    data object TaskCompleted : TaskDetailUserIntent
+    data object TaskStopped : TaskDetailUserIntent
+    data class TitleChanged(val value: String) : TaskDetailUserIntent
 }
 
 sealed interface LoginUserIntent : UserIntent {
-    data class LoginUsernameChanged(val value: String) : LoginUserIntent
-    data class LoginPasswordChanged(val value: String) : LoginUserIntent
-    data object LoginSubmitted : LoginUserIntent
+    data class UsernameChanged(val value: String) : LoginUserIntent
+    data class PasswordChanged(val value: String) : LoginUserIntent
+    data object Submitted : LoginUserIntent
 }
 ```
 
 Rules of thumb:
 
 - Name the sealed interface `<ScreenSubject>UserIntent`.
-- Use past tense and keep the screen or subject prefix visible, for example `TaskDetailBackPressed`, and `TaskDetailSwipedLeft`.
+- Use past tense inside the sealed interface, for example `TaskStarted`, `TaskCompleted`, and `TaskStopped`; do not repeat the screen subject in every variant.
 - Name intents in user language, not reducer language; avoid names like `SetStateToHidden`.
 - Use `data object` for payload-free intents and `data class` for intents with payloads.
 - Keep intents small and self-describing.
@@ -96,7 +90,7 @@ Rules of thumb:
 - Keep each state variant minimal; avoid optional or unrelated properties.
 - Keep the shape UI-oriented, not domain-oriented. Map domain models in the ViewModel before exposing them.
 - Do not put callbacks, `Flow`s, `LiveData`, or Android framework objects into `UiState`.
-- Do not model one-shot events such as toast, snackbar, or navigation as `UiState`; use `SideEffect` through a separate effect stream.
+- Do not model one-shot events such as toast, snackbar, or navigation as `UiState`; use `SideEffect` through the base `MVIViewModel.sideEffects` stream.
 
 ## SideEffect
 
@@ -107,16 +101,17 @@ Use `SideEffect` for fire-and-forget outputs such as navigation, snackbars, anal
 Contract:
 
 ```kotlin
-interface SideEffect
+interface SideEffect {
+    data object None : SideEffect
+}
 ```
 
 Feature-specific shape:
 
 ```kotlin
 sealed interface TaskDetailSideEffect : SideEffect {
-    data object NavigatedBack : TaskDetailSideEffect
-    data object NavigatedToPreviousTask : TaskDetailSideEffect
-    data object NavigatedToNextTask : TaskDetailSideEffect
+    data object CompletionCelebrated : TaskDetailSideEffect
+    data object StopConfirmed : TaskDetailSideEffect
     data class SnackbarShown(val message: String) : TaskDetailSideEffect
     data class AnalyticsTracked(val eventName: String) : TaskDetailSideEffect
 }
@@ -127,33 +122,29 @@ Rules of thumb:
 - Model only one-time outputs that should be handled once by the UI layer.
 - Keep payloads UI-safe and serializable where possible.
 - Do not store `SideEffect`s in `UiState`.
-- Emit effects via a separate stream, for example `SharedFlow<SE>` in the ViewModel.
+- Emit effects through the base `MVIViewModel.emitSideEffect(...)` helper.
+- Collect effects from the base `MVIViewModel.sideEffects` stream.
 
 Example:
 
 ```kotlin
 sealed interface TaskDetailSideEffect : SideEffect {
-    data object NavigatedBack : TaskDetailSideEffect
-    data object NavigatedToPreviousTask : TaskDetailSideEffect
-    data object NavigatedToNextTask : TaskDetailSideEffect
+    data object CompletionCelebrated : TaskDetailSideEffect
+    data object StopConfirmed : TaskDetailSideEffect
     data class SnackbarShown(val message: String) : TaskDetailSideEffect
 }
 
 class TaskDetailViewModel(
     private val repository: TaskRepository,
-) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState>(
+) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
         initialState = TaskDetailUiState.TaskDetailLoading,
     ) {
-    private val _sideEffects = MutableSharedFlow<TaskDetailSideEffect>()
-    val sideEffects: SharedFlow<TaskDetailSideEffect> = _sideEffects.asSharedFlow()
-
     override fun onUserIntent(intent: TaskDetailUserIntent) {
         when (intent) {
-            TaskDetailUserIntent.TaskDetailStarted -> loadTask()
-            TaskDetailUserIntent.TaskDetailBackPressed -> navigateBack()
-            TaskDetailUserIntent.TaskDetailSwipedLeft -> navigateToPreviousTask()
-            TaskDetailUserIntent.TaskDetailSwipedRight -> navigateToNextTask()
-            is TaskDetailUserIntent.TaskDetailTitleChanged -> updateTitle(intent.value)
+            TaskStarted -> loadTask()
+            TaskCompleted -> completeTask()
+            TaskStopped -> stopTask()
+            is TitleChanged -> updateTitle(intent.value)
         }
     }
 
@@ -169,26 +160,20 @@ class TaskDetailViewModel(
                     }
                 }
                 .onFailure {
-                    _sideEffects.emit(TaskDetailSideEffect.SnackbarShown("Data not loaded"))
+                    emitSideEffect(TaskDetailSideEffect.SnackbarShown("Data not loaded"))
                 }
         }
     }
 
-    private fun navigateBack() {
+    private fun completeTask() {
         viewModelScope.launch {
-            _sideEffects.emit(TaskDetailSideEffect.NavigatedBack)
+            emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
         }
     }
 
-    private fun navigateToPreviousTask() {
+    private fun stopTask() {
         viewModelScope.launch {
-            _sideEffects.emit(TaskDetailSideEffect.NavigatedToPreviousTask)
-        }
-    }
-
-    private fun navigateToNextTask() {
-        viewModelScope.launch {
-            _sideEffects.emit(TaskDetailSideEffect.NavigatedToNextTask)
+            emitSideEffect(TaskDetailSideEffect.StopConfirmed)
         }
     }
 
@@ -208,15 +193,15 @@ class TaskDetailViewModel(
 @Composable
 fun TaskDetailScreen(
     viewModel: TaskDetailViewModel,
-    navController: NavController,
     snackbarHostState: SnackbarHostState,
 ) {
     LaunchedEffect(Unit) {
         viewModel.sideEffects.collect { effect ->
             when (effect) {
-                TaskDetailSideEffect.NavigatedBack -> navController.popBackStack()
-                TaskDetailSideEffect.NavigatedToPreviousTask -> navController.navigate("previous-task")
-                TaskDetailSideEffect.NavigatedToNextTask -> navController.navigate("next-task")
+                TaskDetailSideEffect.CompletionCelebrated ->
+                    snackbarHostState.showSnackbar("Task completed")
+                TaskDetailSideEffect.StopConfirmed ->
+                    snackbarHostState.showSnackbar("Task stopped")
                 is TaskDetailSideEffect.SnackbarShown ->
                     snackbarHostState.showSnackbar(effect.message)
             }
@@ -234,15 +219,24 @@ It enforces unidirectional data flow:
 ```text
 Composable renders STATE and emits UI intents
         -> onUserIntent(UI)
-        -> MVIViewModel updateState { ... }
-        -> StateFlow<STATE>
-        -> Composable renders again
+        -> MVIViewModel updateState { ... } or emitSideEffect(...)
+        -> StateFlow<STATE> or SharedFlow<SE>
+        -> Composable renders state or handles effect once
 ```
 
 Contract:
 
 ```kotlin
-abstract class MVIViewModel<UI : UserIntent, STATE : UiState>(
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+abstract class MVIViewModel<UI : UserIntent, STATE : UiState, SE : SideEffect>(
     initialState: STATE,
 ) : ViewModel() {
     abstract fun onUserIntent(intent: UI)
@@ -250,8 +244,30 @@ abstract class MVIViewModel<UI : UserIntent, STATE : UiState>(
     private val _state = MutableStateFlow(initialState)
     val state: StateFlow<STATE> = _state.asStateFlow()
 
+    private val _sideEffects = MutableSharedFlow<SE>()
+    val sideEffects: SharedFlow<SE> = _sideEffects.asSharedFlow()
+
     protected fun updateState(update: (STATE) -> STATE) {
         _state.update(update)
+    }
+
+    protected suspend fun emitSideEffect(sideEffect: SE) {
+        _sideEffects.emit(sideEffect)
+    }
+}
+```
+
+Screens without one-shot effects should use `SideEffect.None` explicitly:
+
+```kotlin
+class StaticInfoViewModel :
+    MVIViewModel<StaticInfoUserIntent, StaticInfoUiState, SideEffect.None>(
+        initialState = StaticInfoUiState.Content,
+    ) {
+    override fun onUserIntent(intent: StaticInfoUserIntent) {
+        when (intent) {
+            StaticInfoUserIntent.Started -> Unit
+        }
     }
 }
 ```
@@ -259,38 +275,63 @@ abstract class MVIViewModel<UI : UserIntent, STATE : UiState>(
 Subclass guarantees:
 
 - Expose a read-only `state: StateFlow<STATE>` that UI can collect with `collectAsStateWithLifecycle()`.
+- Expose a read-only `sideEffects: SharedFlow<SE>` that UI collects from a lifecycle-aware effect collector.
 - Mutate state only through the protected `updateState` reducer.
+- Emit one-shot effects only through the protected `emitSideEffect` helper.
 - Provide a single public entry point, `onUserIntent`, typically implemented as an exhaustive `when` over the intent hierarchy.
 
 How to subclass:
 
-1. Pick concrete types for `UI` and `STATE`.
+1. Pick concrete types for `UI`, `STATE`, and `SE`; use `SideEffect.None` when there are no one-shot effects.
 2. Pass an `initialState`.
 3. Implement `onUserIntent` exhaustively.
 4. Run side effects such as network or repository work in `viewModelScope`.
 5. Apply result state through `updateState`.
-6. Emit one-shot effects through a separate stream, not through `state`.
+6. Emit one-shot UI effects through `emitSideEffect`, not through `state`.
 
 Reference example:
 
 ```kotlin
-class ConnectionBannerViewModel(
-    private val connectionBannerManager: ConnectionBannerManager,
-) : MVIViewModel<ConnectionBannerUserIntent, ConnectionBannerUiState>(
-        initialState = ConnectionBannerHidden,
+class TaskDetailViewModel(
+    private val repository: TaskRepository,
+) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
+        initialState = TaskDetailLoading,
     ) {
-    init {
-        viewModelScope.launch {
-            connectionBannerManager.uiState.collect { newState ->
-                updateState { newState }
-            }
+    override fun onUserIntent(intent: TaskDetailUserIntent) {
+        when (intent) {
+            TaskStarted -> loadTask()
+            TaskCompleted -> completeTask()
+            TaskStopped -> stopTask()
+            is TitleChanged -> updateTitle(intent.value)
         }
     }
 
-    override fun onUserIntent(intent: ConnectionBannerUserIntent) {
-        when (intent) {
-            ConnectionBannerRetryTapped -> connectionBannerManager.retry()
-            ConnectionBannerDismissed -> connectionBannerManager.dismiss()
+    private fun loadTask() {
+        viewModelScope.launch {
+            runCatching { repository.load() }
+                .onSuccess { data ->
+                    updateState {
+                        TaskDetailContent(
+                            title = data.title,
+                            canSave = false,
+                        )
+                    }
+                }
+                .onFailure {
+                    emitSideEffect(SnackbarShown("Data not loaded"))
+                }
+        }
+    }
+
+    private fun completeTask() {
+        viewModelScope.launch {
+            emitSideEffect(CompletionCelebrated)
+        }
+    }
+
+    private fun stopTask() {
+        viewModelScope.launch {
+            emitSideEffect(StopConfirmed)
         }
     }
 }
@@ -298,8 +339,9 @@ class ConnectionBannerViewModel(
 
 What the example shows:
 
-- State can be driven by a domain source; the ViewModel bridges domain state to UI state through `updateState`.
-- Intents map to domain calls. The ViewModel translates user actions; it should avoid owning business logic itself.
+- State changes go through `updateState`.
+- Intents map to state reductions, repository calls, or `emitSideEffect`.
+- One-shot outputs stay in `SideEffect`, not `UiState`.
 - No public mutation API exists other than `onUserIntent`.
 
 ## Cross-Contract Rules
@@ -307,6 +349,6 @@ What the example shows:
 - `UserIntent` represents input that already happened.
 - `UiState` represents persistent renderable output.
 - `SideEffect` represents one-shot output.
-- `MVIViewModel` connects those contracts through `onUserIntent`, `state`, and `updateState`.
+- `MVIViewModel` connects those contracts through `onUserIntent`, `state`, `sideEffects`, `updateState`, and `emitSideEffect`.
 - Keep Android and Compose framework types at the UI boundary unless a platform type is unavoidable for a specific platform integration.
 - Prefer exhaustive sealed-interface handling over default `else` branches.
