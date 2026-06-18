@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "android-mvi",
+      "description": "Skills for Android app architecture, Kotlin, Jetpack Compose, and mobile screen conventions.",
+      "skills": ["android-mvi"]
+    }
+  ]
+}

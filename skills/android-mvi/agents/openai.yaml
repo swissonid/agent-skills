@@ -1,0 +1,4 @@
+interface:
+  display_name: "Android MVI"
+  short_description: "Apply Android MVI screen conventions"
+  default_prompt: "Use $android-mvi to migrate this Android screen to the project MVI conventions."
