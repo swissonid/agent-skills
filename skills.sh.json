@@ -3,7 +3,7 @@
   "notGrouped": "bottom",
   "groupings": [
     {
-      "title": "android-mvi",
+      "title": "Mobile",
       "description": "Skills for Android app architecture, Kotlin, Jetpack Compose, and mobile screen conventions.",
       "skills": ["android-mvi"]
     }
