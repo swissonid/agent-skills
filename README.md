@@ -12,25 +12,24 @@ Use this skill when creating, migrating, or reviewing Android MVI screens in Kot
 
 #### Install
 
+<details open>
+<summary>bun</summary>
 List available skills:
 
-<details open>
-<summary>npm</summary>
-
 ```bash
-npx skills add swissonid/agent-skills --list
+bunx skills add swissonid/agent-skills --list
 ```
 
-Install `android-mvi`:
+Install `android-mvi` for Codex globally:
 
 ```bash
-npx skills add swissonid/agent-skills --skill android-mvi
+bunx skills add swissonid/agent-skills --skill android-mvi
 ```
-
 </details>
 
 <details>
 <summary>pnpm</summary>
+List available skills:
 
 ```bash
 pnpm dlx skills add swissonid/agent-skills --list
@@ -45,16 +44,15 @@ pnpm dlx skills add swissonid/agent-skills --skill android-mvi
 </details>
 
 <details>
-<summary>bun</summary>
+<summary>npm</summary>
 
 ```bash
-bunx skills add swissonid/agent-skills --list
+npx skills add swissonid/agent-skills --list
 ```
 
-Install `android-mvi` for Codex globally:
+Install `android-mvi`:
 
 ```bash
-bunx skills add swissonid/agent-skills --skill android-mvi
+npx skills add swissonid/agent-skills --skill android-mvi
 ```
-
 </details>
