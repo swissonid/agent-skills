@@ -1,0 +1,30 @@
+{
+  "skill_name": "android-clean-mvi",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implement a TaskDetail screen that loads a task from a remote API. Use MVI contracts and make expected loading failures visible to the UI.",
+      "expected_output": "A TDD-oriented plan or code sketch with TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect when needed, TaskDetailViewModel extending MVIViewModel, LoadTaskAction with suspend operator fun invoke returning Result, an optional repository because a remote API boundary exists, and ViewModel mapping Result success/failure to state or side effects without calling the repository directly.",
+      "assertions": [
+        "The output creates or aligns UserIntent, UiState, SideEffect, and MVIViewModel contracts.",
+        "The ViewModel depends on LoadTaskAction or LoadTaskUseCase, not TaskRepository or a data source.",
+        "The action or use case defines suspend operator fun invoke.",
+        "Expected failures are returned as Result failures with typed errors.",
+        "Success maps to UiState content and recoverable failures map to UiState error or an appropriate SideEffect.",
+        "Tests cover both action/use case behavior and ViewModel state/effect behavior."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Review a proposed MVI ViewModel that calls TaskRepository directly, catches exceptions with runCatching, and stores a snackbar message in UiState.",
+      "expected_output": "A review that flags the repository dependency, exception catching above the repository boundary, and one-shot snackbar stored in UiState. It should recommend an action or use case returning Result, persistent render state in UiState, snackbar/navigation as SideEffect, and tests for intent handling plus success/failure mapping.",
+      "assertions": [
+        "The output says the ViewModel should not call the repository directly.",
+        "The output moves expected failures to Result from an action or use case.",
+        "The output says snackbar messages are one-shot SideEffects, not UiState.",
+        "The output keeps ViewModel intent handling exhaustive.",
+        "The output recommends focused ViewModel tests."
+      ]
+    }
+  ]
+}

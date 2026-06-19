@@ -1,0 +1,34 @@
+[
+  {
+    "query": "Create a TaskDetail Compose screen with MVI contracts, a ViewModel, and a LoadTask action that returns Result errors.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this MVI ViewModel that calls TaskRepository directly and stores snackbar messages in UiState.",
+    "should_trigger": true
+  },
+  {
+    "query": "Migrate this Android screen to UserIntent, UiState, SideEffect, MVIViewModel, and clean action/use case boundaries.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a SubmitOrder screen whose ViewModel calls a SubmitOrderUseCase and maps failures to state or side effects.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create only the shared MVIViewModel base contracts.",
+    "should_trigger": false
+  },
+  {
+    "query": "Rename TaskRepositoryImpl to follow clean architecture repository naming conventions.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a Compose button with loading and disabled states.",
+    "should_trigger": false
+  },
+  {
+    "query": "Upgrade Android Gradle Plugin to version 9.",
+    "should_trigger": false
+  }
+]

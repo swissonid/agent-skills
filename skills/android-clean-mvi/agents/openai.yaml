@@ -1,0 +1,4 @@
+interface:
+  display_name: "Android Clean MVI"
+  short_description: "Combine Android MVI with clean architecture boundaries"
+  default_prompt: "Use $android-clean-mvi to implement this Android screen with MVI contracts, action/use case boundaries, and Result-based errors."
