@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.update
  *
  * ```kotlin
  * class TaskDetailViewModel(
- *     private val repository: TaskRepository,
+ *     private val loadTaskAction: LoadTaskAction,
  * ) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
  *         initialState = TaskDetailUiState.TaskDetailLoading,
  *     ) {
@@ -140,7 +140,7 @@ abstract class MVIViewModel<
      * Atomically updates [state] by applying [update] to the current value.
      *
      * Reducers should be pure: calculate and return the next state without
-     * triggering navigation, snackbars, repository calls, analytics, or other
+     * triggering navigation, snackbars, action/use case calls, analytics, or other
      * side effects.
      */
     protected fun updateState(update: (STATE) -> STATE) {

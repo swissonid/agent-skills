@@ -135,7 +135,7 @@ sealed interface TaskDetailSideEffect : SideEffect {
 }
 
 class TaskDetailViewModel(
-    private val repository: TaskRepository,
+    private val loadTaskAction: LoadTaskAction,
 ) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
         initialState = TaskDetailUiState.TaskDetailLoading,
     ) {
@@ -150,18 +150,24 @@ class TaskDetailViewModel(
 
     private fun loadTask() {
         viewModelScope.launch {
-            runCatching { repository.load() }
-                .onSuccess { data ->
+            loadTaskAction().fold(
+                success = { task ->
                     updateState {
                         TaskDetailUiState.TaskDetailContent(
-                            title = data.title,
+                            title = task.title,
                             canSave = false,
                         )
                     }
-                }
-                .onFailure {
-                    emitSideEffect(TaskDetailSideEffect.SnackbarShown("Data not loaded"))
-                }
+                },
+                failure = { error ->
+                    updateState {
+                        TaskDetailUiState.TaskDetailError(
+                            message = error.message ?: "Task not loaded",
+                            retryEnabled = true,
+                        )
+                    }
+                },
+            )
         }
     }
 
@@ -285,7 +291,7 @@ How to subclass:
 1. Pick concrete types for `UI`, `STATE`, and `SE`; use `SideEffect.None` when there are no one-shot effects.
 2. Pass an `initialState`.
 3. Implement `onUserIntent` exhaustively.
-4. Run side effects such as network or repository work in `viewModelScope`.
+4. Run action/use case work in `viewModelScope`.
 5. Apply result state through `updateState`.
 6. Emit one-shot UI effects through `emitSideEffect`, not through `state`.
 
@@ -293,7 +299,7 @@ Reference example:
 
 ```kotlin
 class TaskDetailViewModel(
-    private val repository: TaskRepository,
+    private val loadTaskAction: LoadTaskAction,
 ) : MVIViewModel<TaskDetailUserIntent, TaskDetailUiState, TaskDetailSideEffect>(
         initialState = TaskDetailLoading,
     ) {
@@ -308,18 +314,24 @@ class TaskDetailViewModel(
 
     private fun loadTask() {
         viewModelScope.launch {
-            runCatching { repository.load() }
-                .onSuccess { data ->
+            loadTaskAction().fold(
+                success = { task ->
                     updateState {
                         TaskDetailContent(
-                            title = data.title,
+                            title = task.title,
                             canSave = false,
                         )
                     }
-                }
-                .onFailure {
-                    emitSideEffect(SnackbarShown("Data not loaded"))
-                }
+                },
+                failure = { error ->
+                    updateState {
+                        TaskDetailError(
+                            message = error.message ?: "Task not loaded",
+                            retryEnabled = true,
+                        )
+                    }
+                },
+            )
         }
     }
 
@@ -340,7 +352,7 @@ class TaskDetailViewModel(
 What the example shows:
 
 - State changes go through `updateState`.
-- Intents map to state reductions, repository calls, or `emitSideEffect`.
+- Intents map to state reductions, action/use case calls, or `emitSideEffect`.
 - One-shot outputs stay in `SideEffect`, not `UiState`.
 - No public mutation API exists other than `onUserIntent`.
 
