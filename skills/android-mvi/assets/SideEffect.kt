@@ -23,9 +23,7 @@
  *         initialState = TaskDetailUiState.TaskDetailLoading,
  *     ) {
  *     private fun completeTask() {
- *         viewModelScope.launch {
- *             emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
- *         }
+ *         launchSideEffect(TaskDetailSideEffect.CompletionCelebrated)
  *     }
  * }
  * ```
@@ -37,7 +35,8 @@
  * - Model only outputs that should be handled once by the UI layer.
  * - Keep payloads UI-safe and serializable where possible.
  * - Do not store [SideEffect]s in [UiState].
- * - Emit effects with `emitSideEffect(...)`; collect them from `sideEffects`.
+ * - Emit effects with `emitSideEffect(...)` or `launchSideEffect(...)`;
+ *   collect them from `sideEffects`.
  *
  * @see UserIntent
  * @see UiState

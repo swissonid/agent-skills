@@ -33,7 +33,7 @@ For each screen, verify:
 - Each state variant carries only fields it actually needs.
 - One-shot events are not stored in `UiState`.
 - `sealed interface <ScreenSubject>SideEffect : SideEffect` exists when the screen has one-shot effects.
-- ViewModels use `MVIViewModel<Intent, State, SideEffect>` and emit one-shot effects through `emitSideEffect(...)`; screens without effects use `SideEffect.None` as the third type argument.
+- ViewModels use `MVIViewModel<Intent, State, SideEffect>` and emit one-shot effects through `emitSideEffect(...)` or `launchSideEffect(...)`; screens without effects use `SideEffect.None` as the third type argument.
 - ViewModel and UI `when` branches are exhaustive without catch-all branches that hide missing cases.
 
 ## References

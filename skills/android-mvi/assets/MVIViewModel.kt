@@ -1,4 +1,5 @@
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -6,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * Base class for every MVI-style `ViewModel` in the app.
@@ -15,7 +17,7 @@ import kotlinx.coroutines.flow.update
  * ```
  * Composable renders STATE and emits UI intents
  *         -> onUserIntent(UI)
- *         -> MVIViewModel updateState { ... } or emitSideEffect(...)
+ *         -> MVIViewModel updateState { ... }, emitSideEffect(...), or launchSideEffect(...)
  *         -> StateFlow<STATE> or SharedFlow<SE>
  *         -> Composable renders state or handles effect once
  * ```
@@ -25,8 +27,8 @@ import kotlinx.coroutines.flow.update
  * 1. A read-only [state] `StateFlow` for persistent render state.
  * 2. A read-only [sideEffects] `SharedFlow` for one-shot UI effects.
  * 3. A protected [updateState] reducer, which is the only way to mutate state.
- * 4. A protected [emitSideEffect] function, which is the only way to emit
- *    one-shot effects.
+ * 4. Protected [emitSideEffect] and [launchSideEffect] helpers, which are
+ *    the only ways to emit one-shot effects.
  * 5. A single public entry point, [onUserIntent], which should usually be an
  *    exhaustive `when` over a sealed [UserIntent] hierarchy.
  *
@@ -62,9 +64,7 @@ import kotlinx.coroutines.flow.update
  *     }
  *
  *     private fun completeTask() {
- *         viewModelScope.launch {
- *             emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
- *         }
+ *         launchSideEffect(TaskDetailSideEffect.CompletionCelebrated)
  *     }
  * }
  * ```
@@ -111,8 +111,9 @@ abstract class MVIViewModel<
      *
      * Implementations should usually be a single exhaustive `when` over the
      * feature's sealed intent hierarchy. Long-running work must be launched in
-     * `viewModelScope`; resulting render data is applied with [updateState] and
-     * one-shot outputs are emitted with [emitSideEffect].
+     * `viewModelScope`; resulting render data is applied with [updateState].
+     * One-shot outputs are emitted with [emitSideEffect] from an existing
+     * coroutine or [launchSideEffect] for simple fire-and-forget effects.
      */
     abstract fun onUserIntent(intent: USER_INTENT)
 
@@ -157,5 +158,18 @@ abstract class MVIViewModel<
      */
     protected suspend fun emitSideEffect(sideEffect: SIDE_EFFECT) {
         _sideEffects.emit(sideEffect)
+    }
+
+    /**
+     * Launches [viewModelScope] and emits a one-shot [SideEffect].
+     *
+     * Use this for simple intent handlers that only need to emit one effect.
+     * Prefer [emitSideEffect] when already inside a coroutine that is doing
+     * action/use case work before deciding which effect to emit.
+     */
+    protected fun launchSideEffect(sideEffect: SIDE_EFFECT) {
+        viewModelScope.launch {
+            emitSideEffect(sideEffect)
+        }
     }
 }

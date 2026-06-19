@@ -122,7 +122,7 @@ Rules of thumb:
 - Model only one-time outputs that should be handled once by the UI layer.
 - Keep payloads UI-safe and serializable where possible.
 - Do not store `SideEffect`s in `UiState`.
-- Emit effects through the base `MVIViewModel.emitSideEffect(...)` helper.
+- Emit effects through the base `MVIViewModel.emitSideEffect(...)` or `MVIViewModel.launchSideEffect(...)` helpers.
 - Collect effects from the base `MVIViewModel.sideEffects` stream.
 
 Example:
@@ -172,15 +172,11 @@ class TaskDetailViewModel(
     }
 
     private fun completeTask() {
-        viewModelScope.launch {
-            emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
-        }
+        launchSideEffect(TaskDetailSideEffect.CompletionCelebrated)
     }
 
     private fun stopTask() {
-        viewModelScope.launch {
-            emitSideEffect(TaskDetailSideEffect.StopConfirmed)
-        }
+        launchSideEffect(TaskDetailSideEffect.StopConfirmed)
     }
 
     private fun updateTitle(value: String) {
@@ -225,7 +221,7 @@ It enforces unidirectional data flow:
 ```text
 Composable renders STATE and emits UI intents
         -> onUserIntent(UI)
-        -> MVIViewModel updateState { ... } or emitSideEffect(...)
+        -> MVIViewModel updateState { ... }, emitSideEffect(...), or launchSideEffect(...)
         -> StateFlow<STATE> or SharedFlow<SE>
         -> Composable renders state or handles effect once
 ```
@@ -234,6 +230,7 @@ Contract:
 
 ```kotlin
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -241,6 +238,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 abstract class MVIViewModel<UI : UserIntent, STATE : UiState, SE : SideEffect>(
     initialState: STATE,
@@ -259,6 +257,12 @@ abstract class MVIViewModel<UI : UserIntent, STATE : UiState, SE : SideEffect>(
 
     protected suspend fun emitSideEffect(sideEffect: SE) {
         _sideEffects.emit(sideEffect)
+    }
+
+    protected fun launchSideEffect(sideEffect: SE) {
+        viewModelScope.launch {
+            emitSideEffect(sideEffect)
+        }
     }
 }
 ```
@@ -283,7 +287,7 @@ Subclass guarantees:
 - Expose a read-only `state: StateFlow<STATE>` that UI can collect with `collectAsStateWithLifecycle()`.
 - Expose a read-only `sideEffects: SharedFlow<SE>` that UI collects from a lifecycle-aware effect collector.
 - Mutate state only through the protected `updateState` reducer.
-- Emit one-shot effects only through the protected `emitSideEffect` helper.
+- Emit one-shot effects only through the protected `emitSideEffect` or `launchSideEffect` helpers.
 - Provide a single public entry point, `onUserIntent`, typically implemented as an exhaustive `when` over the intent hierarchy.
 
 How to subclass:
@@ -293,7 +297,7 @@ How to subclass:
 3. Implement `onUserIntent` exhaustively.
 4. Run action/use case work in `viewModelScope`.
 5. Apply result state through `updateState`.
-6. Emit one-shot UI effects through `emitSideEffect`, not through `state`.
+6. Emit one-shot UI effects through `emitSideEffect` or `launchSideEffect`, not through `state`.
 
 Reference example:
 
@@ -336,15 +340,11 @@ class TaskDetailViewModel(
     }
 
     private fun completeTask() {
-        viewModelScope.launch {
-            emitSideEffect(CompletionCelebrated)
-        }
+        launchSideEffect(CompletionCelebrated)
     }
 
     private fun stopTask() {
-        viewModelScope.launch {
-            emitSideEffect(StopConfirmed)
-        }
+        launchSideEffect(StopConfirmed)
     }
 }
 ```
@@ -352,7 +352,7 @@ class TaskDetailViewModel(
 What the example shows:
 
 - State changes go through `updateState`.
-- Intents map to state reductions, action/use case calls, or `emitSideEffect`.
+- Intents map to state reductions, action/use case calls, `emitSideEffect`, or `launchSideEffect`.
 - One-shot outputs stay in `SideEffect`, not `UiState`.
 - No public mutation API exists other than `onUserIntent`.
 
@@ -361,6 +361,6 @@ What the example shows:
 - `UserIntent` represents input that already happened.
 - `UiState` represents persistent renderable output.
 - `SideEffect` represents one-shot output.
-- `MVIViewModel` connects those contracts through `onUserIntent`, `state`, `sideEffects`, `updateState`, and `emitSideEffect`.
+- `MVIViewModel` connects those contracts through `onUserIntent`, `state`, `sideEffects`, `updateState`, `emitSideEffect`, and `launchSideEffect`.
 - Keep Android and Compose framework types at the UI boundary unless a platform type is unavoidable for a specific platform integration.
 - Prefer exhaustive sealed-interface handling over default `else` branches.

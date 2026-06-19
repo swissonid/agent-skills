@@ -104,7 +104,9 @@ sealed interface TaskDetailSideEffect : SideEffect {
 
 Emission recommendation:
 
-- Use the base `MVIViewModel` `sideEffects` stream and emit through `emitSideEffect(...)`.
+- Use the base `MVIViewModel` `sideEffects` stream.
+- Use `launchSideEffect(...)` for simple fire-and-forget effects.
+- Use `emitSideEffect(...)` when already inside a coroutine that is doing action/use case work.
 
 ## 4) Interaction In The ViewModel
 
@@ -120,15 +122,11 @@ class TaskDetailViewModel :
             }
             TaskCompleted -> {
                 // reduce state and emit completion side effect
-                viewModelScope.launch {
-                    emitSideEffect(TaskDetailSideEffect.CompletionCelebrated)
-                }
+                launchSideEffect(TaskDetailSideEffect.CompletionCelebrated)
             }
             TaskStopped -> {
                 // reduce state and emit stop side effect
-                viewModelScope.launch {
-                    emitSideEffect(TaskDetailSideEffect.StopConfirmed)
-                }
+                launchSideEffect(TaskDetailSideEffect.StopConfirmed)
             }
             is TitleChanged -> {
                 // reduce state
@@ -145,5 +143,5 @@ class TaskDetailViewModel :
 - `sealed interface <ScreenSubject>UiState` exists.
 - Each state contains only required properties.
 - `sealed interface <ScreenSubject>SideEffect` exists for one-shot effects.
-- ViewModel extends `MVIViewModel<Intent, State, SideEffect>` and emits effects with `emitSideEffect(...)`; screens without effects use `SideEffect.None` as the third type argument.
+- ViewModel extends `MVIViewModel<Intent, State, SideEffect>` and emits effects with `emitSideEffect(...)` or `launchSideEffect(...)`; screens without effects use `SideEffect.None` as the third type argument.
 - Exhaustive `when` handling exists in `onUserIntent` and in the UI.
